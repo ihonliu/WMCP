@@ -13,29 +13,25 @@
 //
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-using Hardcodet.Wpf.TaskbarNotification;
+using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Windows;
-using WMCP.Libs;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace WMCP {
     /// <summary>
-    /// Interaction logic for App.xaml
+    /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class App : Application {
-        private TaskbarIcon notifyIcon;
-
-        protected override void OnStartup(StartupEventArgs e) {
-            base.OnStartup(e);
-
-            //create the notifyicon (it's a resource declared in NotifyIconResources.xaml
-            notifyIcon = (TaskbarIcon)FindResource("TrayIcon");
-            notifyIcon.Icon = TrayIconFontConstructor.GenerateFontIcon();
-            notifyIcon.Visibility = Visibility.Visible;
-        }
-
-        protected override void OnExit(ExitEventArgs e) {
-            notifyIcon.Dispose(); //the icon would clean up automatically, but this is cleaner
-            base.OnExit(e);
+    public partial class DebugWindow : Window {
+        public DebugWindow() {
+            InitializeComponent();
         }
     }
 }

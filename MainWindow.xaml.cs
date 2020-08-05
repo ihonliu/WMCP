@@ -1,147 +1,198 @@
-﻿using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿//    WMCP Windows media control panel
+//    Copyright (c) 2020 - 2020 Ihon Liu
+//    
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+using System;
 using System.Windows;
-//using System.Windows.Controls;
-//using System.Windows.Data;
-//using System.Windows.Documents;
+using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Threading;
-using Windows.ApplicationModel.ExtendedExecution.Foreground;
-using System.Diagnostics;
 using Windows.Media.Control;
-using Windows.Networking.Sockets;
-using System.Threading.Tasks;
+using System.Linq;
+
+using Session = Windows.Media.Control.GlobalSystemMediaTransportControlsSession;
 
 namespace WMCP {
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window {
-        // private members
-        private Libs.Controller ctrller;
+    public partial class MainWindow {
 
+        #region Fields and properties
+        private Libs.Controller ctrller;
+        private Libs.Model model;
+        private bool pinned = false;
+        private Action updateMediaProperties, updatePlaybackInfo, updateTimelineProperties;
+        #endregion Fields and properties
+
+        #region Constructor and destructor
         /// <summary>
         /// Constructor
         /// </summary>
         public MainWindow() {
             InitializeComponent();
-
             Init();
-
-            updateComponent();
-
-            if (Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.UI.Xaml.Media.AcrylicBrush")) {
-                /*                Windows.UI.Xaml.Media.AcrylicBrush myBrush = new Windows.UI.Xaml.Media.AcrylicBrush();
-
-                                myBrush.BackgroundSource = Windows.UI.Xaml.Media.AcrylicBackgroundSource.HostBackdrop;
-                                myBrush.TintColor = Color.FromArgb(47, 54, 64, 100);
-                                myBrush.FallbackColor = Color.FromArgb(47, 54, 64, 100);
-                                myBrush.TintOpacity = 0.2;*/
-                //System.Windows.Media.Brushes
-
-                this.Background = new System.Windows.Media.SolidColorBrush(Color.FromArgb(255, 202, 24, 37));
-                //this.Background = myBrush;
-                //page.Background = myBrush;
-            }
-            else {
-                System.Windows.Media.SolidColorBrush myBrush = new System.Windows.Media.SolidColorBrush(Color.FromArgb(255, 202, 24, 37));
-                this.Background = myBrush;
-            }
+            var pt = Libs.TaskbarHelper.GetTrayPopupWindowPostion((int)Width,(int)Height);
+            Top = pt.Y;
+            Left = pt.X;
         }
-
         /// <summary>
         /// Destructor
         /// </summary>
         ~MainWindow() {
             ctrller.Dispose();
         }
+        #endregion Constructor and destructor
 
+        #region Methods
         private async void Init() {
-            ctrller = await Libs.Controller.BuildControllerAsync();
+            model = await Libs.Model.BuildModel();
 
-            ctrller.MediaPropertiesChangedEvents.Add(MediaPropertiesChange);
-            ctrller.PlaybackInfoChangedEvents.Add(PlaybackInfoChange);
-            ctrller.TimelinePropertiesChangedEvents.Add(TimelinePropertiesChange);
+            ctrller = Libs.Controller.BuildControllerAsync(model);
+            updateMediaProperties = new Action(() => {
+                if (model != null && model.Media_Properties != null) {
+                    LblArtist.Content = model.Media_Properties.Artist;
+                    LblTitle.Content = model.Media_Properties.Title;
+                }
+            });
+            updatePlaybackInfo = new Action(() => { BtnPlay.Content = model.Playing ? "\uE769" : "\uE768"; });
+            updateTimelineProperties = new Action(() => { PbTimeline.Value = model.Time_line.Percentage; });
+
+            model.MediaPropertiesChange += MediaPropertiesChanged;
+            model.PlaybackInfoChange += PlaybackInfoChanged;
+            model.TimelinePropertiesChange += TimelinePropertiesChanged;
+            model.Refresh();
         }
+        #endregion
 
-        private void MediaPropertiesChange(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs e) {
-            ctrller.updateMediaProperites();
-        }
-
-        private void PlaybackInfoChange(GlobalSystemMediaTransportControlsSession sender, PlaybackInfoChangedEventArgs e) {
-            ctrller.updatePlaybackInfo();
-            updateComponent();
-        }
-
-        private void TimelinePropertiesChange(GlobalSystemMediaTransportControlsSession sender, TimelinePropertiesChangedEventArgs e) {
-            ctrller.updateTimelineProperties();
-        }
-
-        private void updateComponent() {
-            btnPlay.Dispatcher.Invoke(new Action(() => {
-                if (ctrller.currentMediaInfo != null)
-                    btnPlay.Content = ctrller.currentMediaInfo.Playing ? "⏸" : "▶";
-            }));
-        }
-
-        /*
+        #region Events
         /// <summary>
-        /// set window position
+        /// Event for time line properties changed
         /// </summary>
-        private void CenterWindowsToScreen() {
-            //Screen scn = Screen.FromControl(this);
-        }*/
-
-        // ------------------------EVENTS--------------------------
+        /// <param name="session"></param>
+        /// <param name="e"></param>
+        private void MediaPropertiesChanged(Session session, MediaPropertiesChangedEventArgs e) {
+            this.Dispatcher.Invoke(updateMediaProperties);
+        }
+        /// <summary>
+        /// Event for time line properties changed
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="e"></param>
+        private void PlaybackInfoChanged(Session session, PlaybackInfoChangedEventArgs e) {
+            this.Dispatcher.Invoke(updatePlaybackInfo);
+        }
+        /// <summary>
+        /// Event for time line properties changed
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="e"></param>
+        private void TimelinePropertiesChanged(Session session, TimelinePropertiesChangedEventArgs e) {
+            this.Dispatcher.Invoke(updateTimelineProperties);
+        }
         /// <summary>
         /// Event method for clicking Play(▶) button
         /// </summary>
-        private void btnPlay_Click(object sender, RoutedEventArgs e) {
-            //WMCP.Libs.DllInvoke.SendPlayPauseKey();
-            ctrller.playPause(false);
+        private void BtnPlay_Click(object sender, RoutedEventArgs e) {
+            ctrller.PlayPause();
         }
-
         /// <summary>
         /// Event method for clicking Prev(⏮) button
         /// </summary>
-        private void btnPrev_Click(object sender, RoutedEventArgs e) {
-            //WMCP.Libs.DllInvoke.SendPrevKey();
-            ctrller.prev();
+        private void BtnPrev_Click(object sender, RoutedEventArgs e) {
+            ctrller.Previous();
         }
-
         /// <summary>
         /// Event method for clicking Next(⏭) button
         /// </summary>
-        private void btnNext_Click(object sender, RoutedEventArgs e) {
-            //WMCP.Libs.DllInvoke.SendNextKey();
-            ctrller.next();
+        private void BtnNext_Click(object sender, RoutedEventArgs e) {
+            ctrller.Next();
         }
 
+
+        private static readonly Key[] debugKeySequ = new Key[] { Key.Up, Key.Up, Key.Down, Key.Down, Key.Left, Key.Right, Key.Left, Key.Right, Key.B, Key.A, Key.B, Key.A };
+#if !DEBUG
+        private static int debugSequPos = 0;
+#endif
         /// <summary>
         /// Event method for MainWindowKeyDown
         /// </summary>
+        /// state
+        private void CheckDebugKeySequ(Key key) {
+            DebugWindow tmp;
+#if DEBUG
+            tmp = new DebugWindow {
+                Top = this.Top,
+                Left = this.Left + this.Width
+            };
+            tmp.Show();
+            return;
+#else
+            if (debugKeySequ[debugSequPos] == key) {
+                debugSequPos++;
+                if (debugSequPos == debugKeySequ.Length) {
+                    tmp = new DebugWindow();
+                    tmp.Show();
+                }
+            }
+            else
+                debugSequPos = 0;
+#endif
+        }
         private void MainWindowInstance_KeyDown(object sender, KeyEventArgs e) {
             if (sender is MainWindow) {
+                if (debugKeySequ.Contains(e.Key)) {
+                    CheckDebugKeySequ(e.Key);
+                    return;
+                }
                 switch (e.Key) {
                     case Key.F1:
                         MessageBox.Show("what the hell");
                         break;
+                    case Key.Escape:
+                        Close();
+                        break;
                 }
             }
         }
-
-        private void btnTest_Click(object sender, RoutedEventArgs e) {
-            rtbInfo.Document.Blocks.Clear();
-            ctrller.updateMediaInfos();
-
-            rtbInfo.AppendText(ctrller.ToString());
+        private void Button_Click(object sender, RoutedEventArgs e) {
+            if (sender is Button button) {
+                pinned = !pinned;
+                button.Content = pinned ? "\uE840" : "\uE718";
+                this.Topmost = pinned;
+            }
         }
+
+        public new void Close() {
+            Application.Current.MainWindow = null;
+            base.Close();
+        }
+
+        private void Button_Click_NextSession(object sender, RoutedEventArgs e) {
+            //ToDo: Not implemented because I don't know how to change currentSession
+        }
+
+        private void MainWindowInstance_LostFocus(object sender, RoutedEventArgs e) {
+            Close();
+        }
+
+        private void Button_Click_PrevSession(object sender, RoutedEventArgs e) {
+            //ToDo: Not implemented because I don't know how to change currentSession
+        }
+
+        private void MainWindowInstance_Initialized(object sender, EventArgs e) {
+
+        }
+#endregion Events
     }
-
-
 }
