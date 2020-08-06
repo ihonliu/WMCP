@@ -12,8 +12,8 @@
 
     <!-- the application's NotifyIcon - started from App.xaml.cs. Declares its own view model. -->
     <tb:TaskbarIcon x:Key="TrayIcon"
-                    ToolTipText="Double-click for window, right-click for menu"
-                    LeftClickCommand="{Binding ShowWindowCommand}"
+                    ToolTipText="Left-click for window, right-click for menu"
+                    LeftClickCommand="{Binding ShowHideCommand}"
                     ContextMenu="{StaticResource SysTrayMenu}"
                     Visibility="Hidden">
 

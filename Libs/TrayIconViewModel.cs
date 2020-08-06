@@ -16,6 +16,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Controls;
 
 namespace WMCP.Libs {
     public class TrayIconViewModel {
@@ -27,8 +28,10 @@ namespace WMCP.Libs {
                 return new DelegateCommand {
                     CanExecuteFunc = () => Application.Current.MainWindow == null,
                     CommandAction = () => {
-                        Application.Current.MainWindow = new MainWindow();
+                        if (Application.Current.MainWindow == null) Application.Current.MainWindow = new MainWindow();
                         Application.Current.MainWindow.Show();
+                        Application.Current.MainWindow.Activate();
+                        Application.Current.MainWindow.Focus();
                     }
                 };
             }
@@ -44,6 +47,26 @@ namespace WMCP.Libs {
                         Application.Current.MainWindow.Close();
                     },
                     CanExecuteFunc = () => Application.Current.MainWindow != null
+                };
+            }
+        }
+
+        public ICommand ShowHideCommand {
+            get {
+                return new DelegateCommand {
+                    CommandAction = () => {
+                        if (Application.Current.MainWindow == null) {
+                            Application.Current.MainWindow = new MainWindow();
+                            Application.Current.MainWindow.Show();
+                        }
+                        else {
+                            if (Application.Current.MainWindow.Visibility != Visibility.Visible)
+                                Application.Current.MainWindow.Show();
+                            else
+                                Application.Current.MainWindow.Hide();
+                        }
+                    },
+                    CanExecuteFunc = () => { return true; },
                 };
             }
         }
