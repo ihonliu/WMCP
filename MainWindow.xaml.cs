@@ -18,7 +18,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Windows.Media.Control;
+using Windows.Storage.Streams;
 using System.Linq;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+
 
 using Session = Windows.Media.Control.GlobalSystemMediaTransportControlsSession;
 
@@ -26,7 +30,7 @@ namespace WMCP {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow {
+    public partial class MainWindow : Window {
 
         #region Fields and properties
         private Libs.Controller ctrller;
@@ -42,7 +46,7 @@ namespace WMCP {
         public MainWindow() {
             InitializeComponent();
             Init();
-            var pt = Libs.TaskbarHelper.GetTrayPopupWindowPostion((int)Width,(int)Height);
+            var pt = Libs.TaskbarHelper.GetTrayPopupWindowPostion((int)Width, (int)Height);
             Top = pt.Y;
             Left = pt.X;
         }
@@ -59,10 +63,18 @@ namespace WMCP {
             model = await Libs.Model.BuildModel();
 
             ctrller = Libs.Controller.BuildControllerAsync(model);
-            updateMediaProperties = new Action(() => {
+            updateMediaProperties = new Action(async () => {
                 if (model != null && model.Media_Properties != null) {
                     LblArtist.Content = model.Media_Properties.Artist;
                     LblTitle.Content = model.Media_Properties.Title;
+
+                    System.IO.Stream stream = System.IO.WindowsRuntimeStreamExtensions.AsStream(await model.Media_Properties.Thumbnail.OpenReadAsync());
+
+                    var imgSrc = new BitmapImage();
+                    imgSrc.BeginInit();
+                    imgSrc.StreamSource = stream;
+                    imgSrc.EndInit();
+                    imAlbum.Source = imgSrc;
                 }
             });
             updatePlaybackInfo = new Action(() => { BtnPlay.Content = model.Playing ? "\uE769" : "\uE768"; });
@@ -174,8 +186,8 @@ namespace WMCP {
         }
 
         public new void Close() {
-            Application.Current.MainWindow = null;
             base.Close();
+            Application.Current.MainWindow = null;
         }
 
         private void Button_Click_NextSession(object sender, RoutedEventArgs e) {
@@ -186,13 +198,14 @@ namespace WMCP {
             Close();
         }
 
+        private void MainWindowInstance_Loaded(object sender, RoutedEventArgs e) {
+
+        }
+
         private void Button_Click_PrevSession(object sender, RoutedEventArgs e) {
             //ToDo: Not implemented because I don't know how to change currentSession
         }
 
-        private void MainWindowInstance_Initialized(object sender, EventArgs e) {
-
-        }
-#endregion Events
+        #endregion Events
     }
 }

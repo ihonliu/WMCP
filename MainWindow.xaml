@@ -1,4 +1,4 @@
-﻿<fw:AcrylicWindow  x:Class="WMCP.MainWindow"
+﻿<Window  x:Class="WMCP.MainWindow"
         x:Name="MainWindowInstance"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,21 +6,37 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
         xmlns:local="clr-namespace:WMCP"
-        fw:AcrylicWindow.ExtendViewIntoTitleBar="True"
+         fw:AcrylicWindow.ExtendViewIntoTitleBar="True" fw:AcrylicWindow.Enabled="True"
+         fw:AcrylicWindow.AcrylicWindowStyle="None"
         mc:Ignorable="d"
         Title="MainWindow" Height="500" Width="400"
-        WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        AcrylicWindowStyle="None"  
-        KeyDown="MainWindowInstance_KeyDown"
+        WindowStyle="None"
         AllowDrop="False"
-        Initialized="MainWindowInstance_Initialized"
         BorderThickness="0"
-        Visibility="Collapsed"   
-        LostFocus="MainWindowInstance_LostFocus"
+        ShowInTaskbar="False"
+        
+        KeyDown="MainWindowInstance_KeyDown"
+         Topmost="True"       
     >
+    <!--Visibility="Collapsed"-->
 
-    <Grid fw:AcrylicWindow.TintColor="Black">
+    <!--Animation test code-->
+    <!--<Window.Triggers>
+        <EventTrigger RoutedEvent="Window.Loaded">
+            <EventTrigger.Actions>
+                <BeginStoryboard>
+                    <Storyboard BeginTime="0" Duration="0:0:1">
+                        <DoubleAnimation Storyboard.TargetProperty="(Window.Top)" From="0" To="500" AutoReverse="true" BeginTime="0:0:0" Duration="0:0:1" />
+                        <DoubleAnimation Storyboard.TargetProperty="(Window.Left)" From="0" To="400" AutoReverse="true" BeginTime="0:0:0" Duration="0:0:1" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger.Actions>
+        </EventTrigger>
+    </Window.Triggers>-->
+    <!--fw:AcrylicWindow.ExtendViewIntoTitleBar="True" fw:AcrylicWindow.Enabled="True"-->
+
+    <Grid >
         <Grid.Resources>
             <Style TargetType="{x:Type Button}">
                 <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
@@ -71,8 +87,8 @@
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Content="&#xE76B;" Click="Button_Click_PrevSession"  />
-            <Image x:Name="imAlbum" Grid.Column="1" Source="test.jpg"/>
             <Button Grid.Column="2" Content="&#xE76C;" Click="Button_Click_NextSession" />
+            <Image x:Name="imAlbum" Grid.Column="1" Source="/test.jpg" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False"/>
         </Grid>
 
         <Grid Grid.Row="3" x:Name="ctrlsGrid" HorizontalAlignment="Center" VerticalAlignment="Top">
@@ -104,4 +120,4 @@
             <Label Foreground="Gray" x:Name="LblArtist" HorizontalAlignment="Stretch" Margin="0,0,0,0" Background="Transparent" HorizontalContentAlignment="Center">Artist</Label>
         </StackPanel>
     </Grid>
-</fw:AcrylicWindow>
+</Window>

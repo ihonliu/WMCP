@@ -11,14 +11,14 @@ The goal of WMCP is to implement a [media-plasmoid](https://www.kde.org/announce
 1. Check your tray area
 
 ## ToDo
-+ Add change current session function
-+ Time line adjustment to change media progress
-+ Album cover presentation
-+ Read system color setting and Change color by dark mode
-+ Popup animation
-+ Launch optimization
-+ Memory optimization
-+ Tray icon presentation optimization
++ [ ] Add change current session function
++ [ ] Time line adjustment to change media progress
++ [x] Album cover presentation
++ [ ] Read system color setting and Change color by dark mode
++ [ ] Popup animation
++ [ ] Launch optimization
++ [ ] Memory optimization
++ [ ] Tray icon presentation optimization
 
 ## Limitations
 + Most application does not provide time line properties, so the progress bar won't work in most situations
