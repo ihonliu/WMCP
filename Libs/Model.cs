@@ -152,9 +152,7 @@ namespace WMCP.Libs {
             this.sessionManager.SessionsChanged += SessionManager_SessionsChanged;
             this.sessionManager.CurrentSessionChanged += SessionManager_CurrentSessionChanged;
 
-            UpdateSessionList();
-            UpdateCurrentSession();
-            SessionManager_CurrentSessionChanged(null, null);
+            Refresh();
         }
         /// <summary>
         /// Factory builder for Model
@@ -186,11 +184,17 @@ namespace WMCP.Libs {
         private void BindSession(Session session) {
             if (session != null) {
                 session.MediaPropertiesChanged += MediaPropertiesChange;
+                session.MediaPropertiesChanged += Session_MediaPropertiesChanged;
                 session.PlaybackInfoChanged += PlaybackInfoChange;
                 session.PlaybackInfoChanged += PlaybackInfo_Change;
                 session.TimelinePropertiesChanged += TimelinePropertiesChange;
             }
         }
+
+        private async void Session_MediaPropertiesChanged(Session sender, MediaPropertiesChangedEventArgs args) {
+            await UpdateLocalMediaProperties(sender);
+        }
+
         /// <summary>
         /// Unbind event from session
         /// </summary>
@@ -198,6 +202,7 @@ namespace WMCP.Libs {
         private void UnbindSession(Session session) {
             if (session != null) {
                 session.MediaPropertiesChanged -= MediaPropertiesChange;
+                session.MediaPropertiesChanged -= Session_MediaPropertiesChanged;
                 session.PlaybackInfoChanged -= PlaybackInfoChange;
                 session.PlaybackInfoChanged -= PlaybackInfo_Change;
                 session.TimelinePropertiesChanged -= TimelinePropertiesChange;
@@ -243,8 +248,9 @@ namespace WMCP.Libs {
         }
         private void ManuallyTriggerAllEvent() {
             PlaybackInfo_Change(null, null);
-            MediaPropertiesChange?.Invoke(null, null);
             PlaybackInfoChange?.Invoke(null, null);
+            Session_MediaPropertiesChanged(null, null);
+            MediaPropertiesChange?.Invoke(null, null);
             TimelinePropertiesChange?.Invoke(null, null);
         }
         public void PlaybackInfo_Change(Session session, PlaybackInfoChangedEventArgs e) {
@@ -262,10 +268,12 @@ namespace WMCP.Libs {
         }
         public void UpdateCurrentSession() {
             currentSession = this.sessionManager.GetCurrentSession();
+            BindSession(currentSession);
             if (currentSession != null)
                 Time_line.AssignFromSession(currentSession);
             else
                 Time_line.Clear();
+            //ManuallyTriggerAllEvent();
         }
         public async Task<MediaProperties> UpdateLocalMediaProperties(Session session = null) {
             if (session == null) {
@@ -287,12 +295,12 @@ namespace WMCP.Libs {
         /// </summary>
         public async void Refresh() {
             UpdateSessionList();
-            UpdateCurrentSession();
             foreach (Session s in sessionList) {
                 UnbindSession(s);
             }
-            await UpdateLocalMediaProperties(currentSession);
-            BindSession(currentSession);
+            UpdateCurrentSession();
+            //await UpdateLocalMediaProperties(currentSession);
+
             ManuallyTriggerAllEvent();
         }
         #endregion Refresh and update methods

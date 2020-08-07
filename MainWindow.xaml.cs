@@ -68,13 +68,22 @@ namespace WMCP {
                     LblArtist.Content = model.Media_Properties.Artist;
                     LblTitle.Content = model.Media_Properties.Title;
 
-                    System.IO.Stream stream = System.IO.WindowsRuntimeStreamExtensions.AsStream(await model.Media_Properties.Thumbnail.OpenReadAsync());
+                    try {
+                        System.IO.Stream stream = System.IO.WindowsRuntimeStreamExtensions.AsStream(await model.Media_Properties.Thumbnail.OpenReadAsync());
 
-                    var imgSrc = new BitmapImage();
-                    imgSrc.BeginInit();
-                    imgSrc.StreamSource = stream;
-                    imgSrc.EndInit();
-                    imAlbum.Source = imgSrc;
+                        var imgSrc = new BitmapImage();
+                        imgSrc.BeginInit();
+                        imgSrc.StreamSource = stream;
+                        imgSrc.EndInit();
+                        imAlbum.Source = imgSrc;
+                    }
+                    catch (System.NullReferenceException) {
+                        var imgSrc = new BitmapImage();
+                        imAlbum.Source = imgSrc;
+                    }
+                    catch {
+                        throw;
+                    }
                 }
             });
             updatePlaybackInfo = new Action(() => { BtnPlay.Content = model.Playing ? "\uE769" : "\uE768"; });
